@@ -1,0 +1,363 @@
+#import <sqlite3.h>
+#import "PopoverTableViewController.h"
+#import "PopoverDatePicker.h"
+#import "NewPatientInfoViewController.h"
+#import "AppDelegate_iPad.h"
+#import "AllPhysicianViewController.h"
+
+@class EditPatientInfoViewController;
+
+typedef enum {
+  
+    specialty,
+    language,
+    mainstate,
+    otherstate
+     
+} popOverModePhy;
+
+typedef enum {
+	
+	dob
+	
+}popOverModePhyDob;
+
+
+@interface NewPhysicianViewController : UIViewController<UITextFieldDelegate,PopoverDelegate,DateDelegate> {
+
+	IBOutlet UIScrollView *newScrollView;
+	
+	IBOutlet UITextField *firstNameLabel;
+	IBOutlet UITextField *lastNameLabel;
+	
+	IBOutlet UITextField *mobileLabel;
+	IBOutlet UITextField *officeLabel;
+	IBOutlet UITextField *emailLabel;
+	
+	IBOutlet UITextField *specialtyLabel;
+	IBOutlet UITextField *languageLabel;
+    IBOutlet UITextField *dobLabel;
+
+	
+	IBOutlet UITextField *mainStreetAddressline1Label;
+	IBOutlet UITextField *mainStreetAddressline2Label;
+	IBOutlet UITextField *mainAptSuiteLabel;
+	IBOutlet UITextField *mainCityLabel;
+	IBOutlet UITextField *mainStateLabel;
+	IBOutlet UITextField *mainZipCodeLabel;
+	
+	IBOutlet UITextField *otherStreetAddressline1Label;
+	IBOutlet UITextField *otherStreetAddressline2Label;
+	IBOutlet UITextField *otherAptSuiteLabel;
+	IBOutlet UITextField *otherCityLabel;
+	IBOutlet UITextField *otherStateLabel;
+	IBOutlet UITextField *otherZipCodeLabel;
+	
+	
+	IBOutlet UITextView *description;
+	
+	EditPatientInfoViewController *editPObj;
+	NewPatientInfoViewController *newPObj;
+	PopoverTableViewController *physicianPopover;
+	UIPopoverController *popover;
+	popOverModePhy popOverFor;
+	popOverModePhyDob popOverDob;
+	int popoverTableType;
+	int dateType;
+	int mainState_id;
+	int otherstate_id;
+	AppDelegate_iPad *delegate;
+	
+	
+	NSString *dobString;
+	NSString *otherStateString;
+	
+	//m
+	NSString *maxPhysicianId;
+	NSString *physicianFirstName;
+	NSString *physicianLastName;
+
+    AllPhysicianViewController *superView;
+	
+}
+@property(nonatomic, retain)AllPhysicianViewController *superView;
+
+@property(nonatomic, retain) IBOutlet UIScrollView *newScrollView;
+
+@property(nonatomic, retain) IBOutlet UITextField *firstNameLabel;
+@property(nonatomic, retain) IBOutlet UITextField *lastNameLabel;
+
+@property(nonatomic, retain) IBOutlet UITextField *mobileLabel;
+@property(nonatomic, retain) IBOutlet UITextField *officeLabel;
+@property(nonatomic, retain) IBOutlet UITextField *emailLabel;
+
+@property(nonatomic, retain) IBOutlet UITextField *specialtyLabel;
+@property(nonatomic, retain) IBOutlet UITextField *languageLabel;
+@property(nonatomic, retain) IBOutlet UITextField *dobLabel;
+
+@property(nonatomic, retain) IBOutlet UITextField *mainStreetAddressline1Label;
+@property(nonatomic, retain) IBOutlet UITextField *mainStreetAddressline2Label;
+@property(nonatomic, retain) IBOutlet UITextField *mainAptSuiteLabel;
+@property(nonatomic, retain) IBOutlet UITextField *mainCityLabel;
+@property(nonatomic, retain) IBOutlet UITextField *mainStateLabel;
+@property(nonatomic, retain) IBOutlet UITextField *mainZipCodeLabel;
+
+@property(nonatomic, retain) IBOutlet UITextField *otherStreetAddressline1Label;
+@property(nonatomic, retain) IBOutlet UITextField *otherStreetAddressline2Label;
+@property(nonatomic, retain) IBOutlet UITextField *otherAptSuiteLabel;
+@property(nonatomic, retain) IBOutlet UITextField *otherCityLabel;
+@property(nonatomic, retain) IBOutlet UITextField *otherStateLabel;
+@property(nonatomic, retain) IBOutlet UITextField *otherZipCodeLabel;
+
+@property(nonatomic, retain) IBOutlet UITextView *description;
+
+@property(nonatomic, retain) EditPatientInfoViewController *editPObj;
+@property(nonatomic, retain) NewPatientInfoViewController *newPObj;
+@property(nonatomic, retain) PopoverTableViewController *physicianPopover;
+@property(nonatomic, retain) UIPopoverController *popover;
+
+
+-(IBAction)stateButton1Clicked:(id) sender;
+-(IBAction)stateButton2Clicked:(id) sender;
+-(IBAction)specialtyButtonClicked:(id) sender;
+-(IBAction)languageButtonClicked:(id) sender;
+-(IBAction)dobButtonClicked:(id) sender;
+
+-(IBAction)stateButton1Clicked:(id) sender;
+-(IBAction)stateButton2Clicked:(id) sender;
+
+-(IBAction)newphysicianSaveButtonClicked:(id) sender;
+-(IBAction)newphysicianCancelButtonClicked:(id) sender;
+
+-(BOOL)validateEmail:(NSString *)string;
+-(BOOL)validateName:(NSString *)string;
+-(BOOL)validatePhone:(NSString *)string;
+-(BOOL)validateHomePhone:(NSString *)string;
+-(BOOL)validateZip:(NSString *)string;
+
+-(void)addPhysicianData;
+//m
+-(void)getMaxPhysicianIdDetails;
+-(void)addTempPhysicianData;
+
+- (void) moveTextViewForKeyboard:(NSNotification*)aNotification up: (BOOL) up;
+
+-(int)getLength:(NSString*)mobileNumber;
+-(NSString*)formatNumber:(NSString*)mob
+
+
+
+
+
+.m
+-(IBAction)stateButton1Clicked:(id) sender{
+  
+	popOverFor = mainstate;
+	
+	 NSMutableArray *mainStatesArray = [newPObj getStatesForDisclouser];
+	
+	physicianPopover = [[PopoverTableViewController alloc] initWithStyle:UITableViewStylePlain];
+	physicianPopover.delegate=self;             
+	
+	popover=[[UIPopoverController alloc] initWithContentViewController:physicianPopover];
+	
+	popover.popoverContentSize=CGSizeMake(175,275);
+	
+	physicianPopover.tableData=mainStatesArray;
+	
+    CGRect rect=mainStateLabel.frame;
+    rect.origin.y+=100;
+    
+	[popover presentPopoverFromRect:rect inView:self.view permittedArrowDirections:UIPopoverArrowDirectionDown animated:YES];  	
+	
+	
+}
+
+
+#import <UIKit/UIKit.h>
+
+@protocol PopoverDelegate <NSObject>
+@required
+- (void) cellSelected:(NSString *)cellString forIndex:(int)index;
+@end
+
+
+@interface PopoverTableViewController : UITableViewController {
+    NSMutableArray *tableData;
+    
+    id <PopoverDelegate> delegate;
+}
+@property (retain) id delegate;
+
+@property (nonatomic, retain)NSMutableArray *tableData;
+
+
+@end
+.m
+
+
+#import "PopoverTableViewController.h"
+
+
+@implementation PopoverTableViewController
+
+@synthesize tableData;
+@synthesize delegate;
+
+- (id)initWithStyle:(UITableViewStyle)style
+{
+    self = [super initWithStyle:style];
+    if (self) {
+        // Custom initialization
+    }
+    return self;
+}
+
+- (void)dealloc
+{
+    [super dealloc];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    // Releases the view if it doesn't have a superview.
+    [super didReceiveMemoryWarning];
+    
+    // Release any cached data, images, etc that aren't in use.
+}
+
+#pragma mark - View lifecycle
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    // Uncomment the following line to preserve selection between presentations.
+    // self.clearsSelectionOnViewWillAppear = NO;
+    
+    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
+    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+}
+
+- (void)viewDidUnload
+{
+    [super viewDidUnload];
+    // Release any retained subviews of the main view.
+    // e.g. self.myOutlet = nil;
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+}
+
+- (void)viewWillDisappear:(BOOL)animated
+{
+    [super viewWillDisappear:animated];
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    [super viewDidDisappear:animated];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+    // Return YES for supported orientations
+  return YES;
+}
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    // Return the number of sections.
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    // Return the number of rows in the section.
+    return [tableData count];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *CellIdentifier = @"Cell";
+    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
+    }
+    
+    // Configure the cell...
+    cell.textLabel.font=[UIFont fontWithName:@"Arial" size:15.0];
+    cell.textLabel.text=[tableData objectAtIndex:indexPath.row];
+    
+    return cell;
+}
+
+/*
+ // Override to support conditional editing of the table view.
+ - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
+ {
+ // Return NO if you do not want the specified item to be editable.
+ return YES;
+ }
+ */
+
+/*
+ // Override to support editing the table view.
+ - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+ {
+ if (editingStyle == UITableViewCellEditingStyleDelete) {
+ // Delete the row from the data source
+ [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+ }   
+ else if (editingStyle == UITableViewCellEditingStyleInsert) {
+ // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
+ }   
+ }
+ */
+
+/*
+ // Override to support rearranging the table view.
+ - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
+ {
+ }
+ */
+
+/*
+ // Override to support conditional rearranging of the table view.
+ - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
+ {
+ // Return NO if you do not want the item to be re-orderable.
+ return YES;
+ }
+ */
+
+#pragma mark - Table view delegate
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // Navigation logic may go here. Create and push another view controller.
+    /*
+     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
+     // ...
+     // Pass the selected object to the new view controller.
+     [self.navigationController pushViewController:detailViewController animated:YES];
+     [detailViewController release];
+     */
+    
+    // Call delegate that cell is selected
+    [[self delegate] cellSelected:[tableData objectAtIndex:indexPath.row] forIndex:indexPath.row];
+    
+}
+
+@end
+
